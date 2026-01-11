@@ -97,6 +97,9 @@ func List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 
+	// 调试信息
+	c.Writer.Header().Set("X-Debug-Query-Params", fmt.Sprintf("app_id=%s, user_id=%s, action=%s, resource=%s", appIDStr, userID, action, resource))
+
 	if page < 1 {
 		page = 1
 	}
@@ -139,10 +142,17 @@ func List(c *gin.Context) {
 	query.Count(&total)
 
 	var logs []AuditLog
-	query.Order("created_at DESC").
+	result := query.Order("created_at DESC").
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
 		Find(&logs)
+
+	// 调试信息
+	c.Writer.Header().Set("X-Debug-Total", fmt.Sprintf("%d", total))
+	c.Writer.Header().Set("X-Debug-Result-Count", fmt.Sprintf("%d", len(logs)))
+	if result.Error != nil {
+		c.Writer.Header().Set("X-Debug-Error", result.Error.Error())
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,

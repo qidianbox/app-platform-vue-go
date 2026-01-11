@@ -320,7 +320,8 @@ const handleEdit = (app) => {
 }
 
 const handleEnterApp = (app) => {
-  router.push(`/apps/${app.id}/config`)
+  // 使用 app_id 而不是数据库 ID
+  router.push(`/apps/${app.app_id}/config`)
 }
 
 const handleManageModules = async (app) => {

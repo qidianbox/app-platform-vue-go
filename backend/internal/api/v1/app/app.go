@@ -136,19 +136,28 @@ func Create(c *gin.Context) {
 // Detail 获取APP详情
 func Detail(c *gin.Context) {
 	id := c.Param("id")
-
-	// 验证ID
-	if _, err := validator.ValidateID(id); err != nil {
-		response.ParamError(c, err.Error())
-		return
-	}
+	c.Writer.Header().Set("X-Debug-Request-ID", id)
 
 	var app model.App
-	if err := database.GetDB().First(&app, id).Error; err != nil {
+	var err error
+	
+	// 尝试作为数据库ID查询
+	if numID, parseErr := validator.ValidateID(id); parseErr == nil {
+		// 是数字ID，直接查询
+		err = database.GetDB().Debug().First(&app, numID).Error
+	} else {
+		// 不是数字ID，尝试作为app_id查询
+		c.Writer.Header().Set("X-Debug-Query-Type", "app_id")
+		err = database.GetDB().Debug().Where("app_id = ?", id).First(&app).Error
+	}
+	
+	if err != nil {
+		c.Writer.Header().Set("X-Debug-Error", "DB Error: "+err.Error())
 		response.NotFound(c, "应用不存在")
 		return
 	}
 
+	c.Writer.Header().Set("X-Debug-Success", "true")
 	response.Success(c, app)
 }
 

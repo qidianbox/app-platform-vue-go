@@ -281,6 +281,18 @@ request.interceptors.response.use(
   response => {
     systemLogger.logResponse(response, response.config._requestLog)
     
+    // 调试头日志
+    const debugHeaders = {}
+    for (const [key, value] of Object.entries(response.headers)) {
+      if (key.toLowerCase().startsWith('x-debug-')) {
+        debugHeaders[key] = value
+      }
+    }
+    if (Object.keys(debugHeaders).length > 0) {
+      console.log('%c[DEBUG HEADERS]', 'color: #FF9800; font-weight: bold', debugHeaders)
+      systemLogger.info('API', `Debug headers for ${response.config.url}`, debugHeaders)
+    }
+    
     // 处理统一响应格式
     const data = response.data
     

@@ -362,10 +362,11 @@ const fetchLogs = async () => {
     }
     delete params.dateRange
 
-    const res = await request.get('/api/v1/audit/logs', { params })
-    if (res.code === 0) {
-      logs.value = res.data.list || []
-      pagination.total = res.data.total || 0
+    const res = await request.get('/audit/logs', { params })
+    // request.js 已解包，res 直接是 data 对象
+    if (res) {
+      logs.value = res.list || []
+      pagination.total = res.total || 0
     }
   } catch (error) {
     console.error('获取审计日志失败:', error)
@@ -376,9 +377,10 @@ const fetchLogs = async () => {
 
 const fetchStats = async () => {
   try {
-    const res = await request.get('/api/v1/audit/stats')
-    if (res.code === 0) {
-      stats.value = res.data || {}
+    const res = await request.get('/audit/stats')
+    // request.js 已解包
+    if (res) {
+      stats.value = res || {}
     }
   } catch (error) {
     console.error('获取统计数据失败:', error)
@@ -409,7 +411,7 @@ const exportLogs = async () => {
     }
     delete params.dateRange
 
-    const res = await request.get('/api/v1/audit/export', { 
+    const res = await request.get('/audit/export', { 
       params,
       responseType: 'blob'
     })
@@ -432,7 +434,7 @@ const showCleanupDialog = async () => {
   cleanupVisible.value = true
   // 获取清理配置
   try {
-    const configRes = await request.get('/api/v1/audit/cleanup/config')
+    const configRes = await request.get('/audit/cleanup/config')
     if (configRes.code === 0) {
       cleanupConfig.value = configRes.data
       cleanupForm.retentionDays = configRes.data.retention_days
@@ -442,7 +444,7 @@ const showCleanupDialog = async () => {
   }
   // 获取清理历史
   try {
-    const historyRes = await request.get('/api/v1/audit/cleanup/history', { params: { limit: 5 } })
+    const historyRes = await request.get('/audit/cleanup/history', { params: { limit: 5 } })
     if (historyRes.code === 0) {
       cleanupHistory.value = historyRes.data || []
     }
@@ -454,7 +456,7 @@ const showCleanupDialog = async () => {
 const executeCleanup = async () => {
   cleanupLoading.value = true
   try {
-    const res = await request.post('/api/v1/audit/cleanup', null, {
+    const res = await request.post('/audit/cleanup', null, {
       params: { retention_days: cleanupForm.retentionDays }
     })
     if (res.code === 0) {

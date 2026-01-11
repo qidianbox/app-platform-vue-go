@@ -160,6 +160,34 @@
             <span>基础配置</span>
           </div>
 
+          <!-- 菜单管理 -->
+          <div 
+            class="sidebar-item"
+            :class="{ active: currentPage === 'menus' }"
+            @click="switchPage('menus')"
+            role="menuitem"
+            tabindex="0"
+            aria-label="菜单管理"
+            @keydown.enter="switchPage('menus')"
+          >
+            <el-icon aria-hidden="true"><Menu /></el-icon>
+            <span>菜单管理</span>
+          </div>
+
+          <!-- API管理 -->
+          <div 
+            class="sidebar-item"
+            :class="{ active: currentPage === 'apis' }"
+            @click="switchPage('apis')"
+            role="menuitem"
+            tabindex="0"
+            aria-label="API管理"
+            @keydown.enter="switchPage('apis')"
+          >
+            <el-icon aria-hidden="true"><Connection /></el-icon>
+            <span>API管理</span>
+          </div>
+
         <!-- 模块分组 -->
         <template v-for="group in moduleGroups" :key="group.key">
           <div 
@@ -972,6 +1000,16 @@
           </el-form>
         </div>
 
+        <!-- 菜单管理页面 -->
+        <div v-else-if="currentPage === 'menus'" class="page-content">
+          <MenuManagement />
+        </div>
+
+        <!-- API管理页面 -->
+        <div v-else-if="currentPage === 'apis'" class="page-content">
+          <APIManagement />
+        </div>
+
         <!-- 默认页面 -->
         <div v-else class="page-content">
           <el-empty description="请从左侧选择配置项" />
@@ -1031,12 +1069,14 @@ import {
   ArrowLeft, ArrowRight, House, Setting, User, UserFilled, 
   CreditCard, ChatDotRound, DataLine, Document, Monitor, 
   FolderOpened, Tools, Box, Grid, Warning, CopyDocument,
-  Bell, DataAnalysis, Promotion, Lock
+  Bell, DataAnalysis, Promotion, Lock, Menu, Connection
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import Workspace from './Workspace.vue'
 import MobileMenu from '@/components/MobileMenu.vue'
+import MenuManagement from './MenuManagement.vue'
+import APIManagement from './APIManagement.vue'
 
 const route = useRoute()
 const router = useRouter()

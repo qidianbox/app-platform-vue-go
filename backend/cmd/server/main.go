@@ -15,6 +15,8 @@ import (
 	statsapi "app-platform-backend/internal/api/v1/stats"
 	"app-platform-backend/internal/api/v1/system"
 	wsapi "app-platform-backend/internal/api/v1/websocket"
+	menuapi "app-platform-backend/internal/api/v1/menu"
+	apimanager "app-platform-backend/internal/api/v1/apimanager"
 	"app-platform-backend/internal/config"
 	"app-platform-backend/internal/middleware"
 	"app-platform-backend/internal/pkg/database"
@@ -82,8 +84,13 @@ func main() {
 	}
 	log.Printf("[Main] %d modules initialized", module.GetModuleCount())
 
-	// 2. 同步模块功能到数据库
-	syncer := module.NewSyncer(database.GetDB())
+// 2. 初始化菜单和API管理模块
+		menuapi.InitDB(database.GetDB())
+		apimanager.InitDB(database.GetDB())
+		log.Println("[Main] Menu and API manager modules initialized")
+
+		// 3. 同步模块功能到数据库
+		syncer := module.NewSyncer(database.GetDB())
 	if err := syncer.SyncModulesToDB(); err != nil {
 		log.Fatalf("Failed to sync modules to database: %v", err)
 	}
@@ -138,8 +145,32 @@ func main() {
 				appGroup.DELETE("/:id/modules/:module_code", moduleapi.DisableModule)
 				appGroup.POST("/:id/modules/batch", moduleapi.BatchEnableModules)
 
-				// APP模块配置管理
-				appGroup.PUT("/:id/modules/:module_code/config", moduleapi.SaveModuleConfig)
+// APP菜单管理
+					appGroup.GET("/:id/menus", menuapi.GetMenus)
+					appGroup.GET("/:id/menus/list", menuapi.GetMenuList)
+					appGroup.POST("/:id/menus", menuapi.CreateMenu)
+					appGroup.GET("/:id/menus/:menuId", menuapi.GetMenuDetail)
+					appGroup.PUT("/:id/menus/:menuId", menuapi.UpdateMenu)
+					appGroup.DELETE("/:id/menus/:menuId", menuapi.DeleteMenu)
+					appGroup.PUT("/:id/menus/sort", menuapi.UpdateMenuSort)
+
+					// APP API授权管理
+					appGroup.GET("/:id/api-permissions", apimanager.GetAppAPIPermissions)
+					appGroup.POST("/:id/api-permissions", apimanager.GrantAPIPermission)
+					appGroup.DELETE("/:id/api-permissions/:apiCode", apimanager.RevokeAPIPermission)
+
+					// APP API密钥管理
+					appGroup.GET("/:id/api-keys", apimanager.GetAppAPIKeys)
+					appGroup.POST("/:id/api-keys", apimanager.CreateAppAPIKey)
+					appGroup.PUT("/:id/api-keys/:keyId/status", apimanager.UpdateAppAPIKeyStatus)
+					appGroup.DELETE("/:id/api-keys/:keyId", apimanager.DeleteAppAPIKey)
+
+					// APP API调用统计
+					appGroup.GET("/:id/api-stats", apimanager.GetAppAPIStats)
+					appGroup.GET("/:id/api-logs", apimanager.GetAppAPICallLogs)
+
+					// APP模块配置管理
+					appGroup.PUT("/:id/modules/:module_code/config", moduleapi.SaveModuleConfig)
 				appGroup.GET("/:id/modules/:module_code/config", moduleapi.GetModuleConfig)
 				appGroup.DELETE("/:id/modules/:module_code/config", moduleapi.ResetModuleConfig)
 				appGroup.POST("/:id/modules/:module_code/config/test", moduleapi.TestModuleConfig)
@@ -171,8 +202,16 @@ func main() {
 			}
 			log.Printf("[Main] %d module routes registered", len(modules))
 
-			// 模块模板管理（核心功能，不通过模块注册）
-			moduleGroup := auth.Group("/modules")
+// 系统级API管理
+				apiGroup := auth.Group("/system-apis")
+				{
+					apiGroup.GET("", apimanager.GetSystemAPIs)
+					apiGroup.GET("/categories", apimanager.GetSystemAPICategories)
+					apiGroup.GET("/modules", apimanager.GetSystemAPIModules)
+				}
+
+				// 模块模板管理（核心功能，不通过模块注册）
+				moduleGroup := auth.Group("/modules")
 			{
 				moduleGroup.GET("/templates", moduleapi.GetAllTemplates)
 				moduleGroup.GET("/dependencies/detect/:module_code", moduleapi.DetectCircularDependency)

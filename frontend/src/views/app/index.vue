@@ -328,7 +328,8 @@ const handleManageModules = async (app) => {
   currentApp.value = app
   try {
     const res = await getAppModules(app.id)
-    currentAppModules.value = res.data || []
+    // axios 响应拦截器已经解包，res 直接就是数组
+    currentAppModules.value = Array.isArray(res) ? res : (res?.data || [])
     moduleDialogVisible.value = true
   } catch (error) {
     // 如果获取失败，使用空数组
@@ -357,7 +358,8 @@ const handleToggleModule = async (module) => {
     
     // 刷新模块列表
     const res = await getAppModules(currentApp.value.id)
-    currentAppModules.value = res.data || []
+    // axios 响应拦截器已经解包，res 直接就是数组
+    currentAppModules.value = Array.isArray(res) ? res : (res?.data || [])
     fetchAppList()
   } catch (error) {
     ElMessage.error('操作失败：' + (error.response?.data?.error || error.message))

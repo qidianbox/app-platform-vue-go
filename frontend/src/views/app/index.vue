@@ -209,7 +209,7 @@ import {
   Search
 } from '@element-plus/icons-vue'
 import { getAppList, createApp, updateApp, deleteApp, resetAppSecret } from '@/api/app'
-import { getAppModules, updateAppModule } from '@/api/module'
+import { getAppModules, enableAppModule, updateAppModule, disableAppModule } from '@/api/module'
 import { moduleList, getGroupedModules, getAllModuleIds } from '@/config/moduleCategories'
 
 const router = useRouter()
@@ -338,22 +338,29 @@ const handleManageModules = async (app) => {
 }
 
 const isModuleEnabled = (moduleId) => {
-  return currentAppModules.value.some(m => m.source_module === moduleId && m.status === 1)
+  return currentAppModules.value.some(m => m.module_code === moduleId && m.status === 1)
 }
 
 const handleToggleModule = async (module) => {
   try {
     const isEnabled = isModuleEnabled(module.id)
-    await updateAppModule(currentApp.value.id, module.id, {
-      is_enabled: !isEnabled
-    })
-    ElMessage.success('模块状态更新成功')
+    
+    if (isEnabled) {
+      // 已启用，则禁用
+      await disableAppModule(currentApp.value.id, module.id)
+      ElMessage.success('模块已禁用')
+    } else {
+      // 未启用，则启用
+      await enableAppModule(currentApp.value.id, module.id)
+      ElMessage.success('模块已启用')
+    }
+    
     // 刷新模块列表
     const res = await getAppModules(currentApp.value.id)
     currentAppModules.value = res.data || []
     fetchAppList()
   } catch (error) {
-    ElMessage.error('更新失败')
+    ElMessage.error('操作失败：' + (error.response?.data?.error || error.message))
   }
 }
 

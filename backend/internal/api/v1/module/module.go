@@ -22,7 +22,14 @@ func GetAllTemplates(c *gin.Context) {
 }
 
 func GetAppModules(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var modules []model.AppModule
 	database.GetDB().Where("app_id = ?", appID).Find(&modules)
@@ -86,8 +93,15 @@ func GetAppModules(c *gin.Context) {
 }
 
 func GetAppModule(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var module model.AppModule
 	if err := database.GetDB().Where("app_id = ? AND module_code = ?", appID, moduleCode).First(&module).Error; err != nil {
@@ -102,7 +116,14 @@ func GetAppModule(c *gin.Context) {
 }
 
 func EnableModule(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var req struct {
 		ModuleCode string `json:"module_code" binding:"required"`
@@ -121,7 +142,7 @@ func EnableModule(c *gin.Context) {
 	}
 
 	module := model.AppModule{
-		AppID:      parseUint(appID),
+		AppID:      appID,
 		ModuleCode: req.ModuleCode,
 		Config:     "{}",
 		Status:     1,
@@ -139,8 +160,15 @@ func EnableModule(c *gin.Context) {
 }
 
 func UpdateModule(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var module model.AppModule
 	if err := database.GetDB().Where("app_id = ? AND module_code = ?", appID, moduleCode).First(&module).Error; err != nil {
@@ -168,8 +196,15 @@ func UpdateModule(c *gin.Context) {
 }
 
 func DisableModule(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	if err := database.GetDB().Where("app_id = ? AND module_code = ?", appID, moduleCode).Delete(&model.AppModule{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disable module"})
@@ -183,7 +218,14 @@ func DisableModule(c *gin.Context) {
 }
 
 func BatchEnableModules(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var req struct {
 		ModuleCodes []string `json:"module_codes" binding:"required"`
@@ -198,7 +240,7 @@ func BatchEnableModules(c *gin.Context) {
 		var existing model.AppModule
 		if err := database.GetDB().Where("app_id = ? AND module_code = ?", appID, code).First(&existing).Error; err != nil {
 			module := model.AppModule{
-				AppID:      parseUint(appID),
+				AppID:      appID,
 				ModuleCode: code,
 				Config:     "{}",
 				Status:     1,
@@ -214,8 +256,15 @@ func BatchEnableModules(c *gin.Context) {
 }
 
 func SaveModuleConfig(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var module model.AppModule
 	if err := database.GetDB().Where("app_id = ? AND module_code = ?", appID, moduleCode).First(&module).Error; err != nil {
@@ -239,7 +288,7 @@ func SaveModuleConfig(c *gin.Context) {
 		Select("COALESCE(MAX(version), 0)").Scan(&maxVersion)
 
 	history := model.ModuleConfigHistory{
-		AppID:      parseUint(appID),
+		AppID:      appID,
 		ModuleCode: moduleCode,
 		Config:     module.Config,
 		Version:    maxVersion + 1,
@@ -258,8 +307,15 @@ func SaveModuleConfig(c *gin.Context) {
 }
 
 func GetModuleConfig(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var module model.AppModule
 	if err := database.GetDB().Where("app_id = ? AND module_code = ?", appID, moduleCode).First(&module).Error; err != nil {
@@ -276,8 +332,15 @@ func GetModuleConfig(c *gin.Context) {
 }
 
 func ResetModuleConfig(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var module model.AppModule
 	if err := database.GetDB().Where("app_id = ? AND module_code = ?", appID, moduleCode).First(&module).Error; err != nil {
@@ -304,8 +367,15 @@ func TestModuleConfig(c *gin.Context) {
 }
 
 func GetConfigHistory(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var history []model.ModuleConfigHistory
 	database.GetDB().Where("app_id = ? AND module_code = ?", appID, moduleCode).
@@ -318,9 +388,16 @@ func GetConfigHistory(c *gin.Context) {
 }
 
 func RollbackConfig(c *gin.Context) {
-	appID := c.Param("id")
+	idParam := c.Param("id")
 	moduleCode := c.Param("module_code")
 	historyID := c.Param("history_id")
+	
+	// 获取数据库 ID
+	appID, err := getAppDatabaseID(idParam)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "App not found"})
+		return
+	}
 
 	var history model.ModuleConfigHistory
 	if err := database.GetDB().First(&history, historyID).Error; err != nil {

@@ -44,9 +44,10 @@ backend/server
 backend/app-backend
 backend/app-platform-server
 
-# 数据库备份（保留schema.sql）
+# 数据库备份（保留schema和更新的文件）
 *.sql
 !database/schema.sql
+!database/schema_updated.sql
 
 # 测试覆盖率
 coverage/

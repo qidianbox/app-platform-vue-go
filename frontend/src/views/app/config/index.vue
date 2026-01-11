@@ -1261,6 +1261,9 @@ const storageConfig = ref({
   allowedTypes: 'jpg,png,gif,pdf,doc,docx'
 })
 
+// fileConfig 是 storageConfig 的别名，用于模块配置加载
+const fileConfig = storageConfig
+
 const configMgmtConfig = ref({
   enabled: true,
   refreshInterval: 300,

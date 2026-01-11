@@ -167,7 +167,7 @@ import {
 } from '@/api/menu'
 
 const route = useRoute()
-const appId = computed(() => route.params.appId)
+const appId = computed(() => route.params.id)
 
 // 状态
 const loading = ref(false)

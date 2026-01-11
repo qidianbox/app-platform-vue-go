@@ -263,7 +263,7 @@ import {
 } from '@/api/apiManager'
 
 const route = useRoute()
-const appId = computed(() => route.params.appId)
+const appId = computed(() => route.params.id)
 
 // 标签页
 const activeTab = ref('permissions')

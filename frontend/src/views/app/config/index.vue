@@ -1278,8 +1278,8 @@ const versionConfig = ref({
 // 切换页面
 const switchPage = (page) => {
   currentPage.value = page
-  // 切换到模块配置页面时加载配置
-  if (page !== 'overview' && page !== 'basic') {
+  // 切换到模块配置页面时加载配置（排除菜单管理和API管理页面）
+  if (page !== 'overview' && page !== 'basic' && page !== 'menus' && page !== 'apis') {
     loadModuleConfig(page)
   }
 }
@@ -1310,7 +1310,8 @@ const switchWorkspaceMenu = (menu) => {
 const switchMobilePage = (page) => {
   currentPage.value = page
   mobileMenuOpen.value = false
-  if (page !== 'overview' && page !== 'basic') {
+  // 切换到模块配置页面时加载配置（排除菜单管理和API管理页面）
+  if (page !== 'overview' && page !== 'basic' && page !== 'menus' && page !== 'apis') {
     loadModuleConfig(page)
   }
 }
